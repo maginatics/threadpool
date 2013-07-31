@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+#
+# Copyright (c) Maginatics, Inc. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+import os
+import platform
+
+from waflib import Build
+
+def options(opt):
+    opt.load("compiler_cxx")
+
+def configure(conf):
+    conf.load("compiler_cxx")
+
+    # TODO(nater): compiler version detection
+    if platform.system() == "Darwin":
+        conf.env.CXX = "clang++"
+
+    # Configure paths to boost
+    #boost_prefix = "/path/to/boost"
+    boost_prefix = "/Users/nater/devel/client/tools/mac64/runtime"
+    conf.env.LIBPATH_BOOST = [os.path.join(boost_prefix, "lib")]
+    conf.env.INCLUDES_BOOST = [os.path.join(boost_prefix, "include")]
+    # Required boost thread library version
+    conf.env.DEFINES_BOOST = ["BOOST_THREAD_VERSION=3"]
+
+    # Configure paths to Maginatics ThreadPool
+    conf.env.INCLUDES_MAGTP = [conf.path.parent.find_dir("src").abspath()]
+    # C++03 or greater required
+    conf.env.CXXFLAGS_MAGTP = ["-std=c++0x"]
+
+    # Check required headers and libraries
+    conf.check_cxx(header_name="boost/thread.hpp",
+            lib=["boost_thread", "boost_system"],
+            use="BOOST")
+    conf.check_cxx(header_name="maginatics/threadpool/threadpool.h",
+            lib=["boost_thread", "boost_system"],
+            use=["MAGTP", "BOOST"])
+
+def build(bld):
+    bld.program(source = "demo.cc",
+            lib = ["boost_thread", "boost_system", "pthread"],
+            use = ["BOOST", "MAGTP"],
+            target = "demo")
+
+

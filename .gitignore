@@ -1,0 +1,7 @@
+# Python cruft
+*.pyc
+# Build target
+build/
+# Waf cruft
+.waf-*
+.lock-waf*
