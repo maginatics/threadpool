@@ -42,7 +42,7 @@ Task return values can be retrieved using the `schedule` interface:
     bool someNonVoidTask();
 
     ThreadPool pool(1, 512, 30000);
-    auto result = pool.<bool>schedule([]() -> bool {
+    auto result = pool.schedule<bool>([]() -> bool {
                 return someNonVoidTask();
             });
     printf("Returned %d\n", result.get());
