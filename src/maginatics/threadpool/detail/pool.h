@@ -62,6 +62,7 @@ public:
     void drain();
     bool empty();
     int64_t size();
+    int64_t queueLength();
 
     //
     // Internal implementation
