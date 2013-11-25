@@ -100,11 +100,18 @@ public:
         return pool_->empty();
     }
 
-    /// @return         the number of tasks in the pool
+    /// @return         the number of executing tasks in the pool
     ///
     int64_t size() {
         return pool_->size();
     }
+
+    /// @return         the number of pending tasks in the pool
+    ///
+    int64_t queueLength() {
+        return pool_->queueLength();
+    }
+
 private:
     boost::shared_ptr<detail::Pool> pool_; ///< Pool implementation
 };

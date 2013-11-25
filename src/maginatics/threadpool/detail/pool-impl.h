@@ -49,6 +49,11 @@ inline int64_t Pool::size() {
     return poolSize_;
 }
 
+inline int64_t Pool::queueLength() {
+    boost::unique_lock<Mutex> lock(mutex_);
+    return tasks_.size();
+}
+
 inline void Pool::drain() {
     boost::unique_lock<Mutex> lock(mutex_);
     while (activeWorkers_ != 0 || !tasks_.empty()) {
