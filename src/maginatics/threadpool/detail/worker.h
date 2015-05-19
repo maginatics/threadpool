@@ -38,7 +38,7 @@ public:
 private:
     void run(); // Main run loop
     Pool *pool_; // Pool handle
-    boost::thread thread_; // Execution thread
+    cxx::thread thread_; // Execution thread
 };
 
 inline Worker::Worker(Pool *pool)
@@ -54,7 +54,7 @@ inline void Worker::join() {
 
 inline bool Worker::start() {
     assert(!thread_.joinable());
-    thread_ = boost::thread([this]() {
+    thread_ = cxx::thread([this]() {
             run();
         });
     return thread_.joinable();

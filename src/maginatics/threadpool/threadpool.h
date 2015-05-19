@@ -22,12 +22,8 @@
 #ifndef MAGINATICS_THREADPOOL_THREADPOOL_H_
 #define MAGINATICS_THREADPOOL_THREADPOOL_H_
 
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread/future.hpp>
-
 #include <maginatics/threadpool/detail/pool.h>
+#include <maginatics/threadpool/detail/port.h>
 
 namespace maginatics {
 
@@ -54,7 +50,7 @@ public:
     ThreadPool(int64_t minPoolSize,
                int64_t maxPoolSize,
                int64_t keepAlive)
-        : pool_(boost::make_shared<detail::Pool>(
+        : pool_(cxx::make_shared<detail::Pool>(
                     minPoolSize, maxPoolSize, keepAlive)) { }
 
     /// Createa a new fixed-size thread pool.
@@ -62,7 +58,7 @@ public:
     /// @param[in]      poolSize        fixed pool size
     ///
     explicit ThreadPool(int64_t poolSize)
-        : pool_(boost::make_shared<detail::Pool>(
+        : pool_(cxx::make_shared<detail::Pool>(
                     poolSize, poolSize, 0)) { }
 
     /// Execute a task at a later time.
@@ -71,7 +67,7 @@ public:
     ///
     /// @return                     true, or false in case of a terrible error
     ///
-    bool execute(boost::function<void()> const& task) {
+    bool execute(cxx::function<void()> const& task) {
         return pool_->execute(task);
     }
 
@@ -82,7 +78,7 @@ public:
     /// @return                     the future result of the task
     ///
     template<typename T>
-    boost::future<T> schedule(boost::function<T()> const& task) {
+    cxx::future<T> schedule(cxx::function<T()> const& task) {
         return pool_->schedule(task);
     }
 
@@ -113,7 +109,7 @@ public:
     }
 
 private:
-    boost::shared_ptr<detail::Pool> pool_; ///< Pool implementation
+    cxx::shared_ptr<detail::Pool> pool_; ///< Pool implementation
 };
 
 } // maginatics namespace

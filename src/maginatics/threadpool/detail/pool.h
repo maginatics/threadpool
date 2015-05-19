@@ -25,10 +25,7 @@
 #include <deque>
 #include <vector>
 
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/future.hpp>
-#include <boost/thread/mutex.hpp>
+#include <maginatics/threadpool/detail/port.h>
 
 namespace maginatics {
 namespace detail {
@@ -56,9 +53,9 @@ public:
     // Public ThreadPool implementation
     //
 
-    bool execute(boost::function<void()> const& task);
+    bool execute(cxx::function<void()> const& task);
     template<typename T>
-    boost::future<T> schedule(boost::function<T()> const& task);
+    cxx::future<T> schedule(cxx::function<T()> const& task);
     void drain();
     bool empty();
     int64_t size();
@@ -97,14 +94,14 @@ private:
     int64_t activeWorkers_; ///< Workers running tasks
     bool shutdown_; ///< Whether shutdown has been triggered
 
-    std::deque<boost::function<void()>> tasks_; ///< Outstanding tasks
+    std::deque<cxx::function<void()>> tasks_; ///< Outstanding tasks
     std::vector<Worker *> terminated_; ///< Terminated workers to join
 
-    typedef boost::mutex Mutex;
+    typedef cxx::mutex Mutex;
 
     Mutex mutex_;
-    boost::condition_variable_any taskCv_;
-    boost::condition_variable_any drainCv_;
+    cxx::condition_variable_any taskCv_;
+    cxx::condition_variable_any drainCv_;
 };
 
 } // detail namespace

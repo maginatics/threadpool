@@ -25,6 +25,7 @@
 
 #include <cassert>
 
+#include <maginatics/threadpool/detail/port.h>
 #include <maginatics/threadpool/detail/pool.h>
 #include <maginatics/threadpool/detail/worker.h>
 
@@ -32,7 +33,7 @@ namespace maginatics {
 namespace detail {
 
 inline void Pool::initPool() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     // Bring up the minimum number of workers
     for (int i = 0; i < minPoolSize_; ++i) {
         addThread();
@@ -40,29 +41,29 @@ inline void Pool::initPool() {
 }
 
 inline bool Pool::empty() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     return tasks_.empty();
 }
 
 inline int64_t Pool::size() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     return poolSize_;
 }
 
 inline int64_t Pool::queueLength() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     return tasks_.size();
 }
 
 inline void Pool::drain() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     while (activeWorkers_ != 0 || !tasks_.empty()) {
         drainCv_.wait(lock);
     }
 }
 
 inline void Pool::shutdown() {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     shutdown_ = true;
     taskCv_.notify_all();
     while (poolSize_ > 0) {
@@ -76,8 +77,8 @@ inline void Pool::shutdown() {
     terminated_.clear();
 }
 
-inline bool Pool::execute(boost::function<void()> const& task) {
-    boost::unique_lock<Mutex> lock(mutex_);
+inline bool Pool::execute(cxx::function<void()> const& task) {
+    cxx::unique_lock<Mutex> lock(mutex_);
 
     if (poolSize_ < minPoolSize_) {
         // Restore any missing worker threads
@@ -101,27 +102,27 @@ inline bool Pool::execute(boost::function<void()> const& task) {
 }
 
 template<typename T>
-boost::future<T> Pool::schedule(boost::function<T()> const& task) {
+cxx::future<T> Pool::schedule(cxx::function<T()> const& task) {
     // Looking *so* forward to std::bind, which understands move semantics
     // even if lambdas do not. In the meantime, create a packaged task
     // pointer wrapper so that we can pass something into our lambda.
     // Le sigh.
-    typedef boost::shared_ptr<boost::packaged_task<T>> Wrapper;
+    typedef cxx::shared_ptr<cxx::packaged_task<T>> Wrapper;
 
     // TODO(nater): The static cast converts task into an rvalue and forces
     // a copy working around Boost #8596, which is fixed in 1.54. Though
     // the aforementioned move semantics would also fix it :/
-    Wrapper packaged(boost::make_shared<boost::packaged_task<T>> (
-            static_cast<boost::function<T()>> (task)));
-    boost::future<T> ret(packaged->get_future());
+    Wrapper packaged(cxx::make_shared<cxx::packaged_task<T>> (
+            static_cast<cxx::function<T()>> (task)));
+    cxx::future<T> ret(packaged->get_future());
 
-    execute(boost::bind<void>(
+    execute(cxx::bind<void>(
         [](Wrapper const& wrapper) {
             (*wrapper)();
         }, packaged));
 
     // MSVC needs a hint
-    return boost::move(ret);
+    return cxx::move(ret);
 }
 
 inline bool Pool::addThread() {
@@ -136,7 +137,7 @@ inline bool Pool::addThread() {
 }
 
 inline void Pool::workerTerminatedUnexpectedly(Worker *worker) {
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     workerTerminated(worker, false);
 }
 
@@ -160,9 +161,9 @@ inline void Pool::workerTerminated(Worker *worker, bool expected) {
 }
 
 inline bool Pool::runTask(Worker *worker) {
-    boost::function<void()> task;
+    cxx::function<void()> task;
 
-    boost::unique_lock<Mutex> lock(mutex_);
+    cxx::unique_lock<Mutex> lock(mutex_);
     if (!terminated_.empty()) {
         // Reap dead workers
         for (auto worker : terminated_) {
@@ -178,8 +179,7 @@ inline bool Pool::runTask(Worker *worker) {
         drainCv_.notify_all();
         if (poolSize_ > minPoolSize_) {
             // Wait up to the keepAlive for a task to show up
-            taskCv_.timed_wait(lock, boost::get_system_time() +
-                               boost::posix_time::milliseconds(keepAlive_));
+            taskCv_.wait_for(lock, cxx::chrono::milliseconds(keepAlive_));
             if (poolSize_ > minPoolSize_ && tasks_.empty()) {
                 ++activeWorkers_; // For accounting
                 workerTerminated(worker, true); // Expected termination
