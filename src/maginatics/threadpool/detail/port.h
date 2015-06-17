@@ -26,6 +26,7 @@
 
 #define BOOST_THREAD_VERSION 3
 
+#include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -43,6 +44,7 @@ namespace cxx {
     using boost::move;
     using boost::mutex;
     using boost::packaged_task;
+    using boost::ref;
     using boost::shared_ptr;
     using boost::thread;
     using boost::unique_lock;
@@ -68,6 +70,7 @@ namespace cxx {
     using std::move;
     using std::mutex;
     using std::packaged_task;
+    using std::ref;
     using std::shared_ptr;
     using std::thread;
     using std::unique_lock;
