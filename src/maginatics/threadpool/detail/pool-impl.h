@@ -107,12 +107,12 @@ cxx::future<T> Pool::schedule(cxx::function<T()> const& task) {
     // even if lambdas do not. In the meantime, create a packaged task
     // pointer wrapper so that we can pass something into our lambda.
     // Le sigh.
-    typedef cxx::shared_ptr<cxx::packaged_task<T>> Wrapper;
+    typedef cxx::shared_ptr<cxx::packaged_task<T()>> Wrapper;
 
     // TODO(nater): The static cast converts task into an rvalue and forces
     // a copy working around Boost #8596, which is fixed in 1.54. Though
     // the aforementioned move semantics would also fix it :/
-    Wrapper packaged(cxx::make_shared<cxx::packaged_task<T>> (
+    Wrapper packaged(cxx::make_shared<cxx::packaged_task<T()>> (
             static_cast<cxx::function<T()>> (task)));
     cxx::future<T> ret(packaged->get_future());
 
