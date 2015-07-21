@@ -4,7 +4,7 @@ Maginatics ThreadPool
 ThreadPool is a C++ implementation of the thread pool pattern, allowing
 arbitrary tasks to be queued for execution by a dedicated pool of worker
 threads. It is a header-only library and requires
-[Boost](http://http://www.boost.org/) with support for version 3 of the
+[Boost](http://http://www.boost.org/) with support for version 4 of the
 `Boost.Thread` interface. Nathan Rosenblum at Maginatics
 <nater@maginatics.com> originally wrote ThreadPool.
 

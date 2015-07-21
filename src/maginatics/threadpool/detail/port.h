@@ -24,7 +24,11 @@
 
 #if defined(USE_BOOST_THREADING)
 
-#define BOOST_THREAD_VERSION 3
+#if !defined(BOOST_THREAD_VERSION)
+#define BOOST_THREAD_VERSION 4
+#elif BOOST_THREAD_VERSION < 4
+#pragma message ("Boost thread version 4+ required")
+#endif
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
